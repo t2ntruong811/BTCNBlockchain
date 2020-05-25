@@ -1,0 +1,27 @@
+{
+  "name": "BTCNBlockchain",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/t2ntruong811/BTCNBlockchain.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/t2ntruong811/BTCNBlockchain/issues"
+  },
+  "homepage": "https://github.com/t2ntruong811/BTCNBlockchain#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "crypto-js": "^4.0.0",
+    "express": "^4.17.1",
+    "ws": "^7.3.0"
+  }
+}
