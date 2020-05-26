@@ -1,9 +1,11 @@
+exports.getSockets = exports.initP2PServer = exports.broadcastLatest = exports.connectToPeers = void 0;
+
 const WebSocket = require("ws");
 const blockchain_1 = require("./blockchain");
+
 const sockets = [];
 
 var MessageType;
-
 (function (MessageType) {
     MessageType[MessageType["QUERY_LATEST"] = 0] = "QUERY_LATEST";
     MessageType[MessageType["QUERY_ALL"] = 1] = "QUERY_ALL";
