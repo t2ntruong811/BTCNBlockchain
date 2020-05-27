@@ -1,3 +1,7 @@
+const CryptoJS = require("crypto-js");
+const ecdsa = require("elliptic");
+const _ = require("lodash");
+const ec = new ecdsa.ec('secp256k1');
 const COINBASE_AMOUNT = 50;
 
 class TxOut {
@@ -175,6 +179,153 @@ const validateCoinbaseTx = (transaction, blockIndex) => {
     }
     if (transaction.txOuts[0].amount != COINBASE_AMOUNT) {
         console.log('invalid coinbase amount in coinbase transaction');
+        return false;
+    }
+    return true;
+};
+
+const validateBlockTransactions = (aTransactions, aUnspentTxOuts, blockIndex) => {
+    const coinbaseTx = aTransactions[0];
+    if (!validateCoinbaseTx(coinbaseTx, blockIndex)) {
+        console.log('invalid coinbase transaction: ' + JSON.stringify(coinbaseTx));
+        return false;
+    }
+    //check for duplicate txIns. Each txIn can be included only once
+    const txIns = _(aTransactions)
+        .map(tx => tx.txIns)
+        .flatten()
+        .value();
+    if (hasDuplicates(txIns)) {
+        return false;
+    }
+    // all but coinbase transactions
+    const normalTransactions = aTransactions.slice(1);
+    return normalTransactions.map((tx) => validateTransaction(tx, aUnspentTxOuts))
+        .reduce((a, b) => (a && b), true);
+};
+
+const hasDuplicates = (txIns) => {
+    const groups = _.countBy(txIns, (txIn) => txIn.txOutId + txIn.txOutId);
+    return _(groups)
+        .map((value, key) => {
+        if (value > 1) {
+            console.log('duplicate txIn: ' + key);
+            return true;
+        }
+        else {
+            return false;
+        }
+    })
+        .includes(true);
+};
+
+const getTxInAmount = (txIn, aUnspentTxOuts) => {
+    return findUnspentTxOut(txIn.txOutId, txIn.txOutIndex, aUnspentTxOuts).amount;
+};
+
+const findUnspentTxOut = (transactionId, index, aUnspentTxOuts) => {
+    return aUnspentTxOuts.find((uTxO) => uTxO.txOutId === transactionId && uTxO.txOutIndex === index);
+};
+
+const getCoinbaseTransaction = (address, blockIndex) => {
+    const t = new Transaction();
+    const txIn = new TxIn();
+    txIn.signature = "";
+    txIn.txOutId = "";
+    txIn.txOutIndex = blockIndex;
+    t.txIns = [txIn];
+    t.txOuts = [new TxOut(address, COINBASE_AMOUNT)];
+    t.id = getTransactionId(t);
+    return t;
+};
+exports.getCoinbaseTransaction = getCoinbaseTransaction;
+
+const processTransactions = (aTransactions, aUnspentTxOuts, blockIndex) => {
+    if (!isValidTransactionsStructure(aTransactions)) {
+        return null;
+    }
+    if (!validateBlockTransactions(aTransactions, aUnspentTxOuts, blockIndex)) {
+        console.log('invalid block transactions');
+        return null;
+    }
+    return updateUnspentTxOuts(aTransactions, aUnspentTxOuts);
+};
+exports.processTransactions = processTransactions;
+
+const toHexString = (byteArray) => {
+    return Array.from(byteArray, (byte) => {
+        return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+    }).join('');
+};
+
+const getPublicKey = (aPrivateKey) => {
+    return ec.keyFromPrivate(aPrivateKey, 'hex').getPublic().encode('hex');
+};
+exports.getPublicKey = getPublicKey;
+
+const isValidTxInStructure = (txIn) => {
+    if (txIn == null) {
+        console.log('txIn is null');
+        return false;
+    }
+    else if (typeof txIn.signature !== 'string') {
+        console.log('invalid signature type in txIn');
+        return false;
+    }
+    else if (typeof txIn.txOutId !== 'string') {
+        console.log('invalid txOutId type in txIn');
+        return false;
+    }
+    else if (typeof txIn.txOutIndex !== 'number') {
+        console.log('invalid txOutIndex type in txIn');
+        return false;
+    }
+    else {
+        return true;
+    }
+};
+
+const isValidTxOutStructure = (txOut) => {
+    if (txOut == null) {
+        console.log('txOut is null');
+        return false;
+    }
+    else if (typeof txOut.address !== 'string') {
+        console.log('invalid address type in txOut');
+        return false;
+    }
+    else if (!isValidAddress(txOut.address)) {
+        console.log('invalid TxOut address');
+        return false;
+    }
+    else if (typeof txOut.amount !== 'number') {
+        console.log('invalid amount type in txOut');
+        return false;
+    }
+    else {
+        return true;
+    }
+};
+
+const isValidTransactionsStructure = (transactions) => {
+    return transactions
+        .map(isValidTransactionStructure)
+        .reduce((a, b) => (a && b), true);
+};
+
+
+//valid address is a valid ecdsa public key in the 04 + X-coordinate + Y-coordinate format
+const isValidAddress = (address) => {
+    if (address.length !== 130) {
+        console.log('invalid public key length');
+        return false;
+    }
+    else if (address.match('^[a-fA-F0-9]+$') === null) {
+        console.log('public key must contain only hex characters');
+        return false;
+    }
+    else if (!address.startsWith('04')) {
+        console.log('public key must start with 04');
         return false;
     }
     return true;
