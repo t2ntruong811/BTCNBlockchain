@@ -4,6 +4,7 @@ const CryptoJS = require("crypto-js");
 const p2p_1 = require("./p2p");
 const util_1 = require("../util");
 const transaction_1 = require("../transaction");
+const wallet_1 = require("../wallet");
 
 class Block {
     constructor(index, hash, previousHash, timestamp, data, difficulty, nonce) {
@@ -62,7 +63,7 @@ const getAdjustedDifficulty = (latestBlock, aBlockchain) => {
 
 const getCurrentTimestamp = () => Math.round(new Date().getTime() / 1000);
 
-const generateNextBlock = (blockData) => {
+const generateRawNextBlock = (blockData) => {
     const previousBlock = getLatestBlock();
     const difficulty = getDifficulty(getBlockchain());
     const nextIndex = previousBlock.index + 1;
@@ -76,7 +77,28 @@ const generateNextBlock = (blockData) => {
         return null;
     }
 };
+exports.generateRawNextBlock = generateRawNextBlock;
+
+const generateNextBlock = () => {
+    const coinbaseTx = transaction_1.getCoinbaseTransaction(wallet_1.getPublicFromWallet(), getLatestBlock().index + 1);
+    const blockData = [coinbaseTx];
+    return generateRawNextBlock(blockData);
+};
 exports.generateNextBlock = generateNextBlock;
+
+const generatenextBlockWithTransaction = (receiverAddress, amount) => {
+    if (!transaction_1.isValidAddress(receiverAddress)) {
+        throw Error('invalid address');
+    }
+    if (typeof amount !== 'number') {
+        throw Error('invalid amount');
+    }
+    const coinbaseTx = transaction_1.getCoinbaseTransaction(wallet_1.getPublicFromWallet(), getLatestBlock().index + 1);
+    const tx = wallet_1.createTransaction(receiverAddress, amount, wallet_1.getPrivateFromWallet(), unspentTxOuts);
+    const blockData = [coinbaseTx, tx];
+    return generateRawNextBlock(blockData);
+};
+exports.generatenextBlockWithTransaction = generatenextBlockWithTransaction;
 
 const findBlock = (index, previousHash, timestamp, data, difficulty) => {
     let nonce = 0;
@@ -88,6 +110,11 @@ const findBlock = (index, previousHash, timestamp, data, difficulty) => {
         nonce++;
     }
 };
+
+const getAccountBalance = () => {
+    return wallet_1.getBalance(wallet_1.getPublicFromWallet(), unspentTxOuts);
+};
+exports.getAccountBalance = getAccountBalance;
 
 const calculateHashForBlock = (block) => calculateHash(block.index, block.previousHash, block.timestamp, block.data, block.difficulty, block.nonce);
 

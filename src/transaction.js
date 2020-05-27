@@ -2,7 +2,7 @@ const CryptoJS = require("crypto-js");
 const ecdsa = require("elliptic");
 const _ = require("lodash");
 const ec = new ecdsa.ec('secp256k1');
-const COINBASE_AMOUNT = 50;
+const COINBASE_AMOUNT = 500;
 
 class TxOut {
     constructor(address, amount) {
@@ -227,7 +227,7 @@ const findUnspentTxOut = (transactionId, index, aUnspentTxOuts) => {
     return aUnspentTxOuts.find((uTxO) => uTxO.txOutId === transactionId && uTxO.txOutIndex === index);
 };
 
-const getCoinbaseTransaction = (address, blockIndex) => {
+const getCoinbaseTransaction = (address, blockIndex, amount) => {
     const t = new Transaction();
     const txIn = new TxIn();
     txIn.signature = "";
@@ -330,3 +330,4 @@ const isValidAddress = (address) => {
     }
     return true;
 };
+exports.isValidAddress = isValidAddress;
