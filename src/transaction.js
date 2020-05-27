@@ -146,14 +146,19 @@ const validateTransaction = (transaction, aUnspentTxOuts) => {
 };
 
 const validateTxIn = (txIn, transaction, aUnspentTxOuts) => {
-    const referencedUTxOut = aUnspentTxOuts.find((uTxO) => uTxO.txOutId === txIn.txOutId && uTxO.txOutId === txIn.txOutId);
+    const referencedUTxOut = aUnspentTxOuts.find((uTxO) => uTxO.txOutId === txIn.txOutId && uTxO.txOutIndex === txIn.txOutIndex);
     if (referencedUTxOut == null) {
         console.log('referenced txOut not found: ' + JSON.stringify(txIn));
         return false;
     }
     const address = referencedUTxOut.address;
     const key = ec.keyFromPublic(address, 'hex');
-    return key.verify(transaction.id, txIn.signature);
+    const validSignature = key.verify(transaction.id, txIn.signature);
+    if (!validSignature) {
+        console.log('invalid txIn signature: %s txId: %s address: %s', txIn.signature, transaction.id, referencedUTxOut.address);
+        return false;
+    }
+    return true;
 };  
 
 const validateCoinbaseTx = (transaction, blockIndex) => {
