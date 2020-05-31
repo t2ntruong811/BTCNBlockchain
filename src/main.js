@@ -5,6 +5,7 @@ const p2p_1 = require("./class/p2p");
 const wallet_1 = require("./wallet");
 const transactionPool_1 = require("./transactionPool");
 const _ = require("lodash");
+const cors = require('cors');
 
 const httpPort = parseInt(process.env.HTTP_PORT) || 3001;
 const p2pPort = parseInt(process.env.P2P_PORT) || 6001;
@@ -12,6 +13,7 @@ const p2pPort = parseInt(process.env.P2P_PORT) || 6001;
 const initHttpServer = (myHttpPort) => {
     const app = express();
 
+    app.use(cors());
     app.use(bodyParser.json());
 
     app.get('/blocks', (req, res) => {
