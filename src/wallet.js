@@ -37,8 +37,7 @@ const getPublicFromWallet = () => {
 exports.getPublicFromWallet = getPublicFromWallet;
 
 const getBalance = (address, unspentTxOuts) => {
-    return _(unspentTxOuts)
-        .filter((uTxO) => uTxO.address === address)
+    return _(findUnspentTxOuts(address, unspentTxOuts))
         .map((uTxO) => uTxO.amount)
         .sum();
 };
@@ -55,12 +54,17 @@ const findTxOutsForAmount = (amount, myUnspentTxOuts) => {
             return { includedUnspentTxOuts, leftOverAmount };
         }
     }
-    throw Error('not enough coins to send transaction');
+    const eMsg = 'Cannot create transaction from the available unspent transaction outputs.' +
+        ' Required amount:' + amount + '. Available unspentTxOuts:' + JSON.stringify(myUnspentTxOuts);
+    throw Error(eMsg);
 };
 
-const createTransaction = (receiverAddress, amount, privateKey, unspentTxOuts) => {
+const createTransaction = (receiverAddress, amount, privateKey, unspentTxOuts, txPool) => {
+    console.log('txPool: %s', JSON.stringify(txPool));
     const myAddress = transaction_1.getPublicKey(privateKey);
-    const myUnspentTxOuts = unspentTxOuts.filter((uTxO) => uTxO.address === myAddress);
+    const myUnspentTxOutsA = unspentTxOuts.filter((uTxO) => uTxO.address === myAddress);
+    const myUnspentTxOuts = filterTxPoolTxs(myUnspentTxOutsA, txPool);
+    // filter from unspentOutputs such inputs that are referenced in pool
     const { includedUnspentTxOuts, leftOverAmount } = findTxOutsForAmount(amount, myUnspentTxOuts);
     const toUnsignedTxIn = (unspentTxOut) => {
         const txIn = new transaction_1.TxIn();
@@ -90,4 +94,35 @@ const createTxOuts = (receiverAddress, myAddress, amount, leftOverAmount) => {
         const leftOverTx = new transaction_1.TxOut(myAddress, leftOverAmount);
         return [txOut1, leftOverTx];
     }
+};
+
+const deleteWallet = () => {
+    if (fs_1.existsSync(privateKeyLocation)) {
+        fs_1.unlinkSync(privateKeyLocation);
+    }
+};
+exports.deleteWallet = deleteWallet;
+
+const findUnspentTxOuts = (ownerAddress, unspentTxOuts) => {
+    return _.filter(unspentTxOuts, (uTxO) => uTxO.address === ownerAddress);
+};
+exports.findUnspentTxOuts = findUnspentTxOuts;
+
+const filterTxPoolTxs = (unspentTxOuts, transactionPool) => {
+    const txIns = _(transactionPool)
+        .map((tx) => tx.txIns)
+        .flatten()
+        .value();
+    const removable = [];
+    for (const unspentTxOut of unspentTxOuts) {
+        const txIn = _.find(txIns, (aTxIn) => {
+            return aTxIn.txOutIndex === unspentTxOut.txOutIndex && aTxIn.txOutId === unspentTxOut.txOutId;
+        });
+        if (txIn === undefined) {
+        }
+        else {
+            removable.push(unspentTxOut);
+        }
+    }
+    return _.without(unspentTxOuts, ...removable);
 };
