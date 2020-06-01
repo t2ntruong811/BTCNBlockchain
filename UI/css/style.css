@@ -558,7 +558,7 @@ ol {
 	        box-shadow: 1px 1px 1px rgba(33, 54, 61, 0.15);
 	border-radius: 10px;
 	position: relative;
-	/* justify-content: space-around; */
+	 justify-content: space-around;
 }
 
 .member h2 {
@@ -617,6 +617,16 @@ ol {
 	color: #fff;
 	padding-top: 13px;
 	margin: 0 8px;
+}
+
+.member-tr {
+	line-height: 50px;
+	text-align: left;
+	border-bottom: 1px solid #cbd3df; 
+}
+
+.member-td {
+	padding-left: 20px;
 }
 
 .member-meta {
