@@ -543,7 +543,7 @@ ol {
 }
 
 .team-members {
-	margin: 0 -10px;
+	margin: 10px;
 }
 
 .member {
@@ -551,14 +551,14 @@ ol {
 	/* width: calc(20% - 25px); */
 	width: calc(100% - 25px);
 	display: flex;
-	margin: 0 10px;
+	margin: 10px;
 	text-align: center;
 	padding: 50px 10px;
 	-webkit-box-shadow: 1px 1px 1px rgba(33, 54, 61, 0.15);
 	        box-shadow: 1px 1px 1px rgba(33, 54, 61, 0.15);
 	border-radius: 10px;
 	position: relative;
-	justify-content: space-around;
+	/* justify-content: space-around; */
 }
 
 .member h2 {
@@ -567,9 +567,9 @@ ol {
 }
 
 .member span {
-	font-size: 14px;
-	color: #75849a;
-	display: block;
+	font-size: 17px;
+	color: #16d0c5;
+	/* display: block; */
 }
 
 .member .member-text {
@@ -577,6 +577,7 @@ ol {
 	-o-transition: all 0.4s;
 	transition: all 0.4s;
 	opacity: 1;
+	margin: 10px;
 }
 
 .member:hover {
@@ -589,7 +590,7 @@ ol {
 }
 
 .member:hover .member-text {
-	opacity: 0;
+	opacity: 1;
 }
 
 .member-img {
@@ -619,7 +620,10 @@ ol {
 }
 
 .member-meta {
-	padding-left: 85px;
+	margin: 10px;
+	word-wrap: break-word;
+	width: 700px;
+	text-align: left;
 }
 
 .member-info {

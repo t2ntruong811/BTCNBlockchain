@@ -33,9 +33,9 @@
 </head>
 <body>
 	<!-- Page Preloder -->
-	<div id="preloder">
+	<!-- <div id="preloder">
 		<div class="loader"></div>
-	</div>
+	</div> -->
 
 	<!-- Header section -->
 	<header class="header-section clearfix">
@@ -68,7 +68,6 @@
 	<!-- Page info end -->
 
 	<!-- Infomation wallet section -->
-	
 	<section class="contact-page">
 		<div id = "infoWallet" class="container">
 			<div class="row">
@@ -79,62 +78,103 @@
 			</div>
 		</div>
 	</section>
-	<!-- Hero section end -->
+	<!-- Infomation wallet section end -->
 
-	<!-- Contact section -->
+	<!-- Form send transaction section -->
 	<section class="contact-page spad">
-		<div class="container">
+		<div id="formSendTransaction" class="container">
 			<div class="row">
 				<div class="col-lg-7">
 					<form class="contact-form">
-						<div class="row">
 							<div class="col-md-12">
 								<div class="form-group">
-									<input class="check-form" type="text" placeholder="Address:">
+									<input v-model="receiverAddress" class="check-form" type="text" placeholder="Address:">
 									<span><i class="ti-check"></i></span>
 								</div>
 							</div>
 							<div class="col-md-12">
 								<div class="form-group">
-									<input class="check-form" type="text" placeholder="Amount:">
+									<input v-model="receiverAmount" class="check-form" type="text" placeholder="Amount:">
 									<span><i class="ti-check"></i></span>
 								</div>
 							</div>
 							<div class="col-md-12">
-								<button class="site-btn sb-gradients mt-4">Send</button>
+								<button class="site-btn sb-gradients mt-4" 
+										v-on:click = "sendTransaction">Send</button>
 							</div>
-						</div>
 					</form>
 				</div>
 			</div>
 		</div>
 	</section>
-	<!-- Contact section end -->
+	<!-- Form send transaction section end -->
 
 	<!-- Team section -->
-	<section class="team-section spad">
+	<section id="transaction" class="team-section spad">
 		<div class="container">
 			<div class="section-title text-center">
 				<h2>Transaction Pool</h2>
 			</div>
 		</div>
-		<div class="team-members"></div>
-			<!-- Team member -->
+
+		<div class="team-members"
+			v-if="transactionPool.length === 0">
 			<div class="member">
 				<div class="member-text">
-					<h2>Tom Binegar</h2>
-					<span>Business Development</span>
-				</div>
-				
-				<div class="member-text">
-					<h2>Tom Binegar</h2>
-					<span>Business Development</span>
-				</div>
-			</div>
+		<span>No transactions in transaction pool</span>
+		</div></div>
+		
+		</div>
 
-			<div class="col-md-12 text-center">
-				<button class="site-btn sb-gradients mt-4">Mine Block</button>
+		<div class="team-members"
+			v-if="transactionPool.length !== 0">
+			<!-- Team member -->
+			<div class="member" v-for="tx in transactionPool">
+				<div class="member-text">
+					<div class="row">
+						<div class="five columns">
+							<div class="row member-meta">
+								<h2>TxId: <span >{{ tx.id }}</span></h2>
+							</div>
+
+							<div v-for="txIn in tx.txIns">
+								<div v-if="txIn.signature === ''">coinbase</div>
+								<div class="row member-meta" v-else>txOutId: {{ txIn.txOutId }}<br>
+																	txOutIndex: {{ txIn.txOutIndex }}</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="member-text">
+					<div class="row">
+						<div class="five columns">
+							<div class="row">
+					<h2><i class="fa fa-angle-right"></i></h2>
+					</div>
+					</div>
+				</div>
+				</div>	
+
+				<div class="member-text">
+					<div class="six columns">
+						<div class="row" v-for="txOut in tx.txOuts">
+						  	<div class="member-meta">
+								<h2>address: <span>{{ txOut.address }}</span></h2>
+								
+								amount: {{ txOut.amount}}
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
+		</div>
+
+		<div class="col-md-12 text-center">
+			<form>
+				<button class="site-btn sb-gradients mt-4"
+						v-on:click="mineBlock">Mine Block</button>
+					</form>
 		</div>
 	</section>
 	<!-- Team section -->
@@ -148,39 +188,68 @@
 					balance: '',
                 }
             },
-            mounted () {
-				axios
-                .get('http://localhost:3001/address')
-                .then(response => (this.address = response.data.address));
+			mounted () {
+			axios
+			.get('http://localhost:3001/address')
+			.then(response => (this.address = response.data.address));
 
-				axios.get('http://localhost:3001/balance')
-				.then(response => (this.balance = response.data.balance));
-
-            }
+			axios.get('http://localhost:3001/balance')
+			.then(response => (this.balance = response.data.balance));
+			}
         })
         
-        // add = new Vue ({
-        //     el: '#add',
-        //     data() {
-        //         return {
-        //         postBody: '',
-        //         ret: ''
-        //         }
-        //     },
-        //     methods: {
-        //         addBlock: function () {
-        //             axios.post(`http://localhost:3001/api/add`, {data: this.postBody})
-        //             .then(response => (this.ret = response.data.newBlock,
-        //                                 app.blocks.push(this.ret)));
-        //         }
-        //     }
-        // })
+        formSendTransaction = new Vue ({
+            el: '#formSendTransaction',
+            data() {
+                return {
+                receiverAddress: '',
+                receiverAmount: ''
+                }
+            },
+            methods: {
+                sendTransaction: function (e) {
+					e.preventDefault();
+					axios.post(`http://localhost:3001/sendTransaction`, 
+								{address: this.receiverAddress,
+								 amount: parseInt(this.receiverAmount)})
+                    .then(response => (this.receiverAddress = null,
+									   this.receiverAmount = null,
+									   transaction.load()))
+                }
+            }
+		})
+		
+		transaction = new Vue ({
+            el: '#transaction',
+            data() {
+                return {
+                transactionPool: [],
+                }
+            },
+            mounted () {
+				this.load()
+			},
+
+			methods: {
+				load: function (){
+					axios
+					.get('http://localhost:3001/transactionPool')
+					.then(response => (this.transactionPool = response.data));
+				},
+
+				mineBlock: function () {
+					axios.post(`http://localhost:3001/mineBlock`)
+                    .then(response => (infoWallet.mounted(),
+									   this.mounted()))
+				}
+			}
+        })
     </script>
 
 	<!--====== Javascripts & Jquery ======-->
-	<script src="js/jquery-3.2.1.min.js"></script>
-	<script src="js/owl.carousel.min.js"></script>
-	<script src="js/main.js"></script>
+	<!-- <script src="js/jquery-3.2.1.min.js"></script>
+	<script src="js/owl.carousel.min.js"></script> -->
+	<!-- <script src="js/main.js"></script> -->
 
 
 
