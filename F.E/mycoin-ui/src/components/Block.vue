@@ -11,8 +11,8 @@
 			<a href="" class="user"><i class="fa fa-user"></i></a>
 			<nav class="main-menu">
 				<ul class="menu-list">
-					<li><a><router-link to="wallet">Wallet</router-link></a></li>
-					<li><a><router-link to="transaction-history">Transaction History</router-link></a></li>
+					<li><a><router-link to="/wallet">Wallet</router-link></a></li>
+					<li><a><router-link to="/transaction-history">Transaction History</router-link></a></li>
 				</ul>
 			</nav>
 		</div>
@@ -33,70 +33,103 @@
 
 	<!-- Team section -->
 	<section id="transactionHistory" class="team-section spad">
-		<div class="container">
+    <div class="container">
 			<div class="section-title text-center">
-				<h2>History</h2>
+				<h2>Block #{{ block.index }}</h2>
 			</div>
 		</div>
-  <div v-if="block.hash">
 
-    <h3>Block #{{ block.index }}</h3>
-    <table>
-      <tbody>
-      <tr>
-        <td>Hash</td>
-        <td>{{ block.hash }}</td>
-      </tr>
-      <tr>
-        <td>Previous hash</td>
-        <td>{{ block.previousHash}}</td>
-      </tr>
-      <tr>
-        <td>Timestamp</td>
-        <td>{{ block.timestamp}}</td>
-      </tr>
-      <tr>
-        <td>Difficulty</td>
-        <td>{{ block.difficulty}}</td>
-      </tr>
-      <tr>
-        <td>Nonce</td>
-        <td>{{ block.nonce}}</td>
-      </tr>
-      <tr>
-        <td>Number of transactions</td>
-        <td>{{ block.data.length}}</td>
-      </tr>
-
-      </tbody>
-    </table>
-    <h3>Transactions</h3>
-    <div class="transaction" v-for="tx in block.data" :key="tx">
-      <div class="row">
-        <router-link :to="{ name: 'Transaction', params: { id: tx.id }}"> <span >{{ tx.id }}</span></router-link>
-
-      </div>
-      <div class="row">
-        <div class="five columns">
-          <div v-for="txIn in tx.txIns" :key="txIn">
-            <div v-if="txIn.signature === ''">coinbase</div>
-            <div class="break-word" v-else>{{ txIn.txOutId }} {{ txIn.txOutIndex }}</div>
+    <div class="team-members">
+        <!-- Team member -->
+        <div class="member">
+          <div class="member-text">
+            <div class="row">
+              <div class="five columns" v-if="block.hash">
+                <table>
+                  <tbody>
+                    <tr class="member-tr">
+                      <td><h2>Hash</h2></td>
+                      <td class="member-td">{{ block.hash }}</td>
+                    </tr>
+                    <tr class="member-tr">
+                      <td><h2>Previous hash</h2></td>
+                      <td class="member-td">{{ block.previousHash}}</td>
+                    </tr>
+                    <tr class="member-tr">
+                      <td><h2>Timestamp</h2></td>
+                      <td class="member-td">{{ block.timestamp}}</td>
+                    </tr>
+                    <tr class="member-tr">
+                      <td><h2>Difficulty</h2></td>
+                      <td class="member-td">{{ block.difficulty}}</td>
+                    </tr>
+                    <tr class="member-tr">
+                      <td><h2>Nonce</h2></td>
+                      <td class="member-td">{{ block.nonce}}</td>
+                    </tr>
+                    <tr class="member-tr">
+                      <td><h2>Number of transactions</h2></td>
+                      <td class="member-td">{{ block.data.length}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="one columns">
-          ->
+    </div>
+	</section>
+	<!-- Team section -->
+
+  <!-- Team section -->
+	<section id="transactionHistory" class="team-section spad">
+    <div class="container">
+			<div class="section-title text-center">
+				<h2>Transaction</h2>
+			</div>
+		</div>
+
+    <!-- Team member -->
+    <div class="team-members">
+      <div class="member" v-for="tx in block.data" :key="tx">
+        <div class="member-text">
+          <div class="row">
+            <div class="five columns" v-if="block.hash">
+              <div class="row member-meta">
+                  <router-link :to="{ name: 'Transaction', params: { id: tx.id }}"><span >{{ tx.id }}</span></router-link>
+              </div>
+
+              <div v-for="txIn in tx.txIns" :key="txIn">
+                <div class="row member-meta" v-if="txIn.signature === ''">coinbase</div>
+                <div class="row member-meta" v-else>{{ txIn.txOutId }} - 
+                                                    {{ txIn.txOutIndex }}</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="six columns">
-          <div class="row" v-for="txOut in tx.txOuts" :key="txOut">
-            <div class="break-word"><router-link :to="{ name: 'Address', params: {address: txOut.address}}">
-              <span>{{ txOut.address }}</span>
-            </router-link>  amount: {{ txOut.amount}} </div>
+
+        <div class="member-text">
+          <div class="row">
+            <div class="five columns">
+              <div class="row">
+                <h2><i class="fa fa-angle-right"></i></h2>
+              </div>
+            </div>
+          </div>
+        </div>	
+
+        <div class="member-text">
+          <div class="six columns">
+            <div class="row" v-for="txOut in tx.txOuts" :key="txOut">
+                <div class="member-meta">
+                <router-link :to="{ name: 'Address', params: {address: txOut.address}}"><span>{{ txOut.address }}</span></router-link>		
+                {{ txOut.amount}}
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-
 	</section>
 	<!-- Team section -->
   </div>
@@ -104,28 +137,28 @@
 
 
 <script>
-  export default {
-    name: 'Block',
-    data() {
-      return {
-        block :{}
-      }
-    },
-    created() {
-      this.getBlock(this.$route.params.id)
-    },
-    methods: {
-      getBlock: function (hash) {
-        this.$http.get('/api/block/' + hash)
-          .then(resp => {
-            this.block = resp.data;
-          })
-      },
-      trimAddress: function(address) {
-        return address.substr(0,24) + '...';
-      }
+import axios from 'axios'
+export default {
+  name: 'Block',
+  data() {
+    return {
+      block :{}
     }
-  }
+  },
+	mounted () {
+		this.getBlock(this.$route.params.id)
+	},
+
+	methods: {
+		getBlock: function (hash){
+			axios.get('http://localhost:3001/block/' + hash)
+			.then(response => (this.block = response.data));
+		},
+    trimAddress: function(address) {
+      return address.substr(0,24) + '...';
+    }
+	}
+}
 </script>
 
 <style>
