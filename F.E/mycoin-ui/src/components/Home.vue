@@ -10,7 +10,8 @@
 			<a href="" class="user"><i class="fa fa-user"></i></a>
 			<nav class="main-menu">
 				<ul class="menu-list">
-					<li><a><router-link to="transaction-history">Transaction History</router-link></a></li>
+					<li><a><router-link to="/">Home</router-link></a></li>
+					<li><a><router-link to="/transaction-history">Transaction History</router-link></a></li>
 				</ul>
 			</nav>
 		</div>
