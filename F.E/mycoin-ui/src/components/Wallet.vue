@@ -11,8 +11,7 @@
 			<a href="" class="user"><i class="fa fa-user"></i></a>
 			<nav class="main-menu">
 				<ul class="menu-list">
-					<li><a><router-link to="wallet">Wallet</router-link></a></li>
-					<li><a><router-link to="transaction-history">Transaction History</router-link></a></li>
+					<li><a><router-link to="/transaction-history">Transaction History</router-link></a></li>
 				</ul>
 			</nav>
 		</div>
@@ -137,7 +136,7 @@
 			<form>
 				<button class="site-btn sb-gradients mt-4"
 						v-on:click="mineBlock">Mine Block</button>
-					</form>
+			</form>
 		</div>
 	</section>
 	<!-- Team section -->
@@ -161,11 +160,13 @@ export default {
     },
     methods: {
         load: function () {
-            axios.get('http://localhost:3001/address')
-            .then(response => (this.address = response.data.address));
+			this.address = this.$route.params.address;
+            // axios.get('http://localhost:3001/address')
+            // .then(response => (this.address = response.data.address));
 
-            axios.get('http://localhost:3001/balance')
-            .then(response => (this.balance = response.data.balance));
+            axios.get('http://localhost:3001/balance/' + this.$route.params.address)
+			.then(response => (this.balance = response.data.balance,
+								console.log(response.data.balance)));
 
             axios.get('http://localhost:3001/transactionPool')
             .then((response) => (this.transactionPool = response.data));
@@ -173,16 +174,16 @@ export default {
 
         sendTransaction: function (e) {
             e.preventDefault();
-            axios.post(`http://localhost:3001/sendTransaction`, 
-                        {address: this.receiverAddress,
-                            amount: parseInt(this.receiverAmount)})
+			axios.post(`http://localhost:3001/sendTransaction/` + this.$route.params.address, 
+						{receiverAddress: this.receiverAddress,
+                        amount: parseInt(this.receiverAmount)})
             .then(() => (this.receiverAddress = null,
                         this.receiverAmount = null),
                         this.load())
         },
 
         mineBlock: function () {
-            axios.post(`http://localhost:3001/mineBlock`)
+            axios.post(`http://localhost:3001/mineBlock/` + this.$route.params.address)
             .then(() => (this.load()))
         }
     }

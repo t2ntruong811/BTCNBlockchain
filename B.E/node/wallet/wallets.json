@@ -1,0 +1,19 @@
+{
+  "wallets": [
+    {
+      "index": 1,
+      "publicKey": "0474e00d175b4b57c2cc11a9324071ad880d02015c1ca23cff50888f7efd79834fc652f433b04cf682e71f5d57e54c17d15d8481ea2af07c55626ae3b68f304ae7",
+      "privateKey": "f716afc8fb432d48b145b581bcb1a9cc49a9b7ba0e890cb9d3e03f8e399f9b04"
+    },
+    {
+      "index": 2,
+      "publicKey": "04476dc39171ef8f5e0718d055cf9d8199f4ecf8cd997ea946c9efdce97edd5aade4594bb645b3faa8b215776054dd4b54342268760633d7b9dccc921d4e63b759",
+      "privateKey": "2fc06fad41bd375cd0dc718a060c47ab0c103046cda779f48cd3f0d2056de36e"
+    },
+    {
+      "index": 3,
+      "publicKey": "04a191e9b7dacbdb216d81a519bc67cba5e209377ccffc9a3620f21afdea4f7ba722967dfcff4b626136c094682f690f24c0109324d529a883e119d6302a8f8896",
+      "privateKey": "eb13047e17856cb2689a336d8cc2874661d820215ab5501554cda283955c5f27"
+    }
+  ]
+}

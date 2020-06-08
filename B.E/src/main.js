@@ -3,9 +3,16 @@ const express = require("express");
 const blockchain_1 = require("./class/blockchain");
 const p2p_1 = require("./class/p2p");
 const wallet_1 = require("./wallet");
+const elliptic_1 = require("elliptic");
+const EC = new elliptic_1.ec('secp256k1');
 const transactionPool_1 = require("./transactionPool");
 const _ = require("lodash");
 const cors = require('cors');
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
+
+const adapter = new FileSync('./node/wallet/wallets.json');
+const db = low(adapter);
 
 const httpPort = parseInt(process.env.HTTP_PORT) || 3001;
 const p2pPort = parseInt(process.env.P2P_PORT) || 6001;
@@ -15,6 +22,16 @@ const initHttpServer = (myHttpPort) => {
 
     app.use(cors());
     app.use(bodyParser.json());
+
+    app.get('/wallets', (req, res) => {
+        const ret = wallet_1.getWallets();
+        res.send(ret);
+    })
+
+    app.post('/create-wallet', (req, res) => {
+        const ret = wallet_1.createWallet();
+        res.send(ret);
+    })
 
     app.get('/blocks', (req, res) => {
         res.send(blockchain_1.getBlockchain());
@@ -60,8 +77,10 @@ const initHttpServer = (myHttpPort) => {
         }
     });
 
-    app.post('/mineBlock', (req, res) => {
-        const newBlock = blockchain_1.generateNextBlock();
+    app.post('/mineBlock/:address', (req, res) => {
+        
+        console.log(req.params.address);
+        const newBlock = blockchain_1.generateNextBlock(req.params.address);
         if (newBlock === null) {
             res.status(400).send('could not generate block');
         }
@@ -70,8 +89,9 @@ const initHttpServer = (myHttpPort) => {
         }
     });
 
-    app.get('/balance', (req, res) => {
-        const balance = blockchain_1.getAccountBalance();
+    app.get('/balance/:address', (req, res) => {
+        console.log(req.params.address);
+        const balance = blockchain_1.getAccountBalance(req.params.address);
         res.send({ 'balance': balance });
     });
 
@@ -93,14 +113,15 @@ const initHttpServer = (myHttpPort) => {
         }
     });
 
-    app.post('/sendTransaction', (req, res) => {
+    app.post('/sendTransaction/:address', (req, res) => {
         try {
-            const address = req.body.address;
+            const address = req.params.address;
+            const receiverAddress = req.body.receiverAddress;
             const amount = req.body.amount;
-            if (address === undefined || amount === undefined) {
+            if (receiverAddress === undefined || amount === undefined) {
                 throw Error('invalid address or amount');
             }
-            const resp = blockchain_1.sendTransaction(address, amount);
+            const resp = blockchain_1.sendTransaction(address ,receiverAddress, amount);
             res.send(resp);
         }
         catch (e) {
@@ -140,4 +161,4 @@ const initHttpServer = (myHttpPort) => {
 
 initHttpServer(httpPort);
 p2p_1.initP2PServer(p2pPort);
-wallet_1.initWallet();
+// wallet_1.initWallet();

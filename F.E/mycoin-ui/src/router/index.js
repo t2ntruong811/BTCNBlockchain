@@ -15,7 +15,7 @@ export default new Router({
       component: Home
     },
     {
-      path: '/wallet',
+      path: '/wallet/:address',
       name: 'Wallet',
       component: Wallet
     },

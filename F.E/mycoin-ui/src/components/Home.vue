@@ -10,7 +10,6 @@
 			<a href="" class="user"><i class="fa fa-user"></i></a>
 			<nav class="main-menu">
 				<ul class="menu-list">
-					<li><a><router-link to="wallet">Wallet</router-link></a></li>
 					<li><a><router-link to="transaction-history">Transaction History</router-link></a></li>
 				</ul>
 			</nav>
@@ -25,8 +24,8 @@
 				<div class="col-md-6 hero-text">
 					<h2>Create <span>Wallet</span></h2>
 					<form class="hero-subscribe-from">
-						<input type="password" placeholder="Enter your password">
-						<button class="site-btn sb-gradients">Get Created</button>
+						<button class="site-btn sb-gradients"
+								v-on:click = "createWallet">Get Created</button>
 					</form>
 				</div>
 				<div class="col-md-6">
@@ -38,49 +37,69 @@
 	<!-- Hero section end -->
 
 	<!-- Process section -->
-  <section class="process-section spad">
-    <div class="container">
-      <div class="section-title text-center">
-        <h2>Get Started With Bitcoin</h2>
-        <p>Start learning about Bitcoin with interactive tutorials. It’s fun, easy, and takes only a few minutes! </p>
-      </div>
-      <div class="row">
-        <div class="col-md-4 process">
-          <div class="process-step">
-            <figure class="process-icon">
-              <img src="img/process-icons/1.png" alt="#">
-            </figure>
-            <h4>Create Your Wallet</h4>
-            <p>Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. </p>
-          </div>
-        </div>
-        <div class="col-md-4 process">
-          <div class="process-step">
-            <figure class="process-icon">
-              <img src="img/process-icons/2.png" alt="#">
-            </figure>
-            <h4>Create Your Wallet</h4>
-            <p>Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. </p>
-          </div>
-        </div>
-        <div class="col-md-4 process">
-          <div class="process-step">
-            <figure class="process-icon">
-              <img src="img/process-icons/3.png" alt="#">
-            </figure>
-            <h4>Create Your Wallet</h4>
-            <p>Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  </div>
+  <section id="transactionHistory" class="team-section spad">
+		<div class="container">
+			<div class="section-title text-center">
+				<h2>Wallets</h2>
+			</div>
+		</div>
+		<div class="team-members">
+			<!-- Team member -->
+			<div class="member">
+				<div class="member-text">
+					<div class="row">
+						<div class="five columns">
+							<table>
+								<thead>
+									<tr class="member-tr">
+										<th><h2>#</h2></th>
+										<th class="member-td"><h2>Address</h2></th>
+									</tr>
+								</thead>
+						
+								<tbody>
+									<tr class="member-tr" v-for="wallet in wallets" :key="wallet">
+										<td><span>{{ wallet.index }}</span></td>
+										<!-- <td class="member-td"><a href = "index.html">{{ block.hash }}</a></td> -->
+										<td class="member-td"><router-link :to="{ name: 'Wallet', params: { address: wallet.publicKey }}"><span>{{ wallet.publicKey }}</span></router-link></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</div>
 </template>
 
 <script>
+import axios from 'axios'
 export default {
-    
+	data() {
+		return {
+			wallets: [],
+		}
+	},
+	mounted () {
+		this.load()
+	},
+
+	methods: {
+		load: function (){
+			axios.get('http://localhost:3001/wallets')
+			.then(response => (this.wallets = response.data));
+		},
+		sortBlocks : function(blocks) {
+			return blocks.slice()
+			.reverse();
+		},
+		createWallet: function(){
+			axios.post('http://localhost:3001/create-wallet')
+			.then(response => (this.wallets = response.data));
+		}
+	}
 }
 </script>
 

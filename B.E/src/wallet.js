@@ -1,9 +1,34 @@
-const privateKeyLocation = 'node/wallet/private_key';
 const elliptic_1 = require("elliptic");
+const EC = new elliptic_1.ec('secp256k1');
 const fs_1 = require("fs");
 const _ = require("lodash");
 const transaction_1 = require("./transaction");
-const EC = new elliptic_1.ec('secp256k1');
+const wallets = require('../node/wallet/wallets.json')
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
+
+const adapter = new FileSync('./node/wallet/wallets.json');
+const db = low(adapter);
+
+const getWallets = () => {
+    return db.get('wallets').value();
+}
+exports.getWallets = getWallets;
+
+const createWallet = () => {
+    const index =  db.get('wallets').size().value() + 1;
+    // const index = wallets.size() + 1;
+    const privateKey = generatePrivateKey();
+    const key = EC.keyFromPrivate(privateKey, 'hex');
+    const publicKey = key.getPublic().encode('hex');
+
+    if(db.get('wallets').find({ publicKey: publicKey }).value() != null){
+        return ;
+    }
+
+    return db.get('wallets').push({ index: index, publicKey: publicKey, privateKey: privateKey}).write();
+}
+exports.createWallet = createWallet;
 
 const generatePrivateKey = () => {
     const keyPair = EC.genKeyPair();
@@ -12,22 +37,25 @@ const generatePrivateKey = () => {
 };
 exports.generatePrivateKey = generatePrivateKey;
 
-const getPrivateFromWallet = () => {
-    const buffer = fs_1.readFileSync(privateKeyLocation, 'utf8');
-    return buffer.toString();
+const getPrivateFromWallet = (address) => {
+    const private_key = db.get('wallets').find({ publicKey: address }).value().privateKey;
+    // const buffer = fs_1.readFileSync(privateKeyLocation, 'utf8');
+    // return buffer.toString();
+    console.log("privateKey" + private_key);
+    return private_key;
 };
 exports.getPrivateFromWallet = getPrivateFromWallet;
 
-const initWallet = () => {
-    // let's not override existing private keys
-    if (fs_1.existsSync(privateKeyLocation)) {
-        return;
-    }
-    const newPrivateKey = generatePrivateKey();
-    fs_1.writeFileSync(privateKeyLocation, newPrivateKey);
-    console.log('new wallet with private key created');
-};
-exports.initWallet = initWallet;
+// const initWallet = () => {
+//     // let's not override existing private keys
+//     if (fs_1.existsSync(privateKeyLocation)) {
+//         return;
+//     }
+//     const newPrivateKey = generatePrivateKey();
+//     fs_1.writeFileSync(privateKeyLocation, newPrivateKey);
+//     console.log('new wallet with private key created');
+// };
+// exports.initWallet = initWallet;
 
 const getPublicFromWallet = () => {
     const privateKey = getPrivateFromWallet();
@@ -59,9 +87,10 @@ const findTxOutsForAmount = (amount, myUnspentTxOuts) => {
     throw Error(eMsg);
 };
 
-const createTransaction = (receiverAddress, amount, privateKey, unspentTxOuts, txPool) => {
+const createTransaction = (address, receiverAddress, amount, privateKey, unspentTxOuts, txPool) => {
     console.log('txPool: %s', JSON.stringify(txPool));
-    const myAddress = transaction_1.getPublicKey(privateKey);
+    // const myAddress = transaction_1.getPublicKey(privateKey);
+    const myAddress = address;
     const myUnspentTxOutsA = unspentTxOuts.filter((uTxO) => uTxO.address === myAddress);
     const myUnspentTxOuts = filterTxPoolTxs(myUnspentTxOutsA, txPool);
     // filter from unspentOutputs such inputs that are referenced in pool
@@ -96,12 +125,12 @@ const createTxOuts = (receiverAddress, myAddress, amount, leftOverAmount) => {
     }
 };
 
-const deleteWallet = () => {
-    if (fs_1.existsSync(privateKeyLocation)) {
-        fs_1.unlinkSync(privateKeyLocation);
-    }
-};
-exports.deleteWallet = deleteWallet;
+// const deleteWallet = () => {
+//     if (fs_1.existsSync(privateKeyLocation)) {
+//         fs_1.unlinkSync(privateKeyLocation);
+//     }
+// };
+// exports.deleteWallet = deleteWallet;
 
 const findUnspentTxOuts = (ownerAddress, unspentTxOuts) => {
     return _.filter(unspentTxOuts, (uTxO) => uTxO.address === ownerAddress);

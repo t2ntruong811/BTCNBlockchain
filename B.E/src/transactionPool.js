@@ -5,6 +5,7 @@ const getTransactionPool = () => {
     return _.cloneDeep(transactionPool);
 };
 exports.getTransactionPool = getTransactionPool;
+
 const addToTransactionPool = (tx, unspentTxOuts) => {
     if (!transaction_1.validateTransaction(tx, unspentTxOuts)) {
         throw Error('Trying to add invalid tx to pool');
